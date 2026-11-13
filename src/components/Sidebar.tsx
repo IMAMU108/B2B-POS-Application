@@ -1,19 +1,29 @@
 import {
+  BarChart3,
   BookOpen,
   Boxes,
   FileSpreadsheet,
-  TerminalSquare,
+  Shield,
+  ShoppingCart,
   X,
 } from 'lucide-react';
 import { formatNaira } from '../utils/formatters';
+import type { UserRole } from './SecurityView';
 
-export type WorkspaceTab = 'parser' | 'inventory' | 'debtors' | 'ledger';
+export type WorkspaceTab =
+  | 'parser'
+  | 'analytics'
+  | 'inventory'
+  | 'debtors'
+  | 'ledger'
+  | 'security';
 
 interface SidebarProps {
   activeTab: WorkspaceTab;
   onSelectTab: (tab: WorkspaceTab) => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  userRole: UserRole;
   metrics: {
     cashAndTransferSales: number;
     outstandingDebt: number;
@@ -25,12 +35,14 @@ interface SidebarProps {
 const NAV_ITEMS: Array<{
   id: WorkspaceTab;
   label: string;
-  icon: typeof TerminalSquare;
+  icon: typeof ShoppingCart;
 }> = [
-  { id: 'parser', label: 'Edge AI Parser', icon: TerminalSquare },
+  { id: 'parser', label: 'POS Checkout', icon: ShoppingCart },
+  { id: 'analytics', label: 'Owner Analytics', icon: BarChart3 },
   { id: 'inventory', label: 'Inventory & SKUs', icon: Boxes },
-  { id: 'debtors', label: 'Debtors & Credit', icon: BookOpen },
+  { id: 'debtors', label: 'Customer Credit Book', icon: BookOpen },
   { id: 'ledger', label: 'Ledger & Sync', icon: FileSpreadsheet },
+  { id: 'security', label: 'Security & RBAC', icon: Shield },
 ];
 
 export function Sidebar({
@@ -38,26 +50,27 @@ export function Sidebar({
   onSelectTab,
   mobileOpen,
   onCloseMobile,
+  userRole,
   metrics,
 }: SidebarProps) {
   const navContent = (
-    <div className="flex h-full flex-col justify-between bg-white border-r border-slate-200 px-4 py-5">
+    <div className="flex h-full flex-col justify-between bg-[#FFFFFF] border-r border-[#E2E8F0]">
       <div>
-        <div className="flex items-center justify-between px-2 pb-6 border-b border-slate-100">
-          <span className="font-display text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap shrink-0">
-            KasuwaPOS
+        <div className="h-14 bg-[#0F172A] px-4 flex items-center justify-between border-b border-slate-800">
+          <span className="text-sm font-bold tracking-tight text-white truncate">
+            Maman Ummi Wholesale
           </span>
           <button
             type="button"
             onClick={onCloseMobile}
-            className="lg:hidden p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+            className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 shrink-0"
             aria-label="Close navigation menu"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="mt-5 space-y-1" aria-label="Workspace navigation">
+        <nav className="mt-4 px-3 space-y-1.5" aria-label="Workspace navigation">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
@@ -76,22 +89,22 @@ export function Sidebar({
                   onSelectTab(item.id);
                   onCloseMobile();
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
+                className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
                   active
-                    ? 'bg-emerald-50 text-emerald-800'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-emerald-50 text-[#059669] font-semibold'
+                    : 'text-slate-600 hover:text-[#0F172A] hover:bg-slate-50'
                 }`}
               >
                 <span className="flex items-center gap-2.5">
                   <Icon
                     className={`h-4 w-4 shrink-0 ${
-                      active ? 'text-emerald-700' : 'text-slate-400'
+                      active ? 'text-[#059669]' : 'text-slate-400'
                     }`}
                   />
                   <span>{item.label}</span>
                 </span>
                 {badge && (
-                  <span className="font-mono text-xs tabular-nums text-amber-700">
+                  <span className="text-xs font-bold tabular-nums text-[#D97706]">
                     {badge}
                   </span>
                 )}
@@ -101,16 +114,24 @@ export function Sidebar({
         </nav>
       </div>
 
-      <div className="pt-4 border-t border-slate-200 px-2 space-y-3">
+      <div className="p-4 border-t border-[#E2E8F0] space-y-3">
         <div>
-          <p className="text-xs text-slate-500">Cash & Transfer Volume</p>
-          <p className="mt-0.5 font-mono text-sm font-semibold text-slate-900 tabular-nums">
+          <p className="text-[11px] font-medium text-slate-500">Active Role</p>
+          <p className="mt-0.5 text-xs font-bold text-[#0F172A] truncate">
+            {userRole === 'OWNER'
+              ? 'Maman Ummi - Store Owner'
+              : 'Ibrahim - Sales Attendant'}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-medium text-slate-500">Cash &amp; Transfer Sales</p>
+          <p className="mt-0.5 text-lg font-bold text-[#0F172A] tabular-nums">
             {formatNaira(metrics.cashAndTransferSales)}
           </p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Outstanding Credit Book</p>
-          <p className="mt-0.5 font-mono text-sm font-semibold text-amber-700 tabular-nums">
+          <p className="text-xs font-medium text-slate-500">Outstanding Credit Book</p>
+          <p className="mt-0.5 text-lg font-bold text-[#D97706] tabular-nums">
             {formatNaira(metrics.outstandingDebt)}
           </p>
         </div>
@@ -123,13 +144,13 @@ export function Sidebar({
       <aside className="hidden lg:block w-64 shrink-0">{navContent}</aside>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden flex">
+        <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-slate-900/30"
+            className="fixed inset-0 bg-[#0F172A]/50 backdrop-blur-[1px]"
             onClick={onCloseMobile}
             aria-hidden="true"
           />
-          <aside className="relative z-50 w-64 max-w-[80vw] h-full">
+          <aside className="relative z-50 w-72 max-w-[85vw] h-full">
             {navContent}
           </aside>
         </div>

@@ -1,4 +1,4 @@
-import { Menu, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Database, Menu, RefreshCw, Wifi } from 'lucide-react';
 import type { WorkspaceTab } from './Sidebar';
 
 interface TopBarProps {
@@ -10,15 +10,7 @@ interface TopBarProps {
   onOpenMobileMenu: () => void;
 }
 
-const TAB_TITLES: Record<WorkspaceTab, string> = {
-  parser: 'Edge AI Parsing Engine',
-  inventory: 'Inventory & SKU Catalog',
-  debtors: 'Debtors & Credit Book',
-  ledger: 'Transaction Ledger & Sync Queue',
-};
-
 export function TopBar({
-  activeTab,
   isOffline,
   onToggleOffline,
   unsyncedCount,
@@ -26,57 +18,51 @@ export function TopBar({
   onOpenMobileMenu,
 }: TopBarProps) {
   return (
-    <header className="h-14 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between gap-8 shrink-0">
-      <div className="flex items-center gap-3 min-w-0">
+    <header className="sticky top-0 z-30 h-14 w-full bg-[#0F172A] text-white border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 min-w-0">
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className="lg:hidden p-2 -ml-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2 rounded-lg text-slate-200 hover:text-white hover:bg-slate-800 shrink-0"
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex items-center gap-2 text-sm min-w-0">
-          <span className="text-slate-400 hidden sm:inline whitespace-nowrap">
-            KasuwaPOS
-          </span>
-          <span className="text-slate-300 hidden sm:inline" aria-hidden="true">
-            /
-          </span>
-          <h1 className="font-display font-semibold text-slate-900 truncate">
-            {TAB_TITLES[activeTab]}
-          </h1>
-        </div>
+        <h1 className="text-[13px] sm:text-base font-bold text-white truncate">
+          Maman Ummi Wholesale
+        </h1>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
-        {unsyncedCount > 0 && (
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {unsyncedCount > 0 && !isOffline && (
           <button
             type="button"
             onClick={onSyncQueue}
-            disabled={isOffline}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap shrink-0"
+            className="min-h-[44px] inline-flex items-center gap-1 px-2.5 text-[11px] sm:text-xs font-semibold rounded-lg bg-[#D97706] text-white hover:bg-amber-600 transition-colors whitespace-nowrap shrink-0"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
-            <span>Sync Queue ({unsyncedCount})</span>
+            <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+            <span className="tabular-nums">Sync ({unsyncedCount})</span>
           </button>
         )}
 
         <button
           type="button"
           onClick={onToggleOffline}
-          className={`inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 ${
+          className={`min-h-[44px] inline-flex items-center gap-1.5 px-2.5 sm:px-3 text-[11px] sm:text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 ${
             isOffline
-              ? 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
-              : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+              ? 'bg-[#059669] text-white hover:bg-[#047857]'
+              : 'bg-slate-800 text-emerald-300 border border-[#059669]/60 hover:bg-slate-700'
           }`}
+          title="Toggle between Offline SQLite mode and Online Cloud sync"
         >
           {isOffline ? (
-            <WifiOff className="h-3.5 w-3.5 shrink-0" />
+            <Database className="h-3.5 w-3.5 shrink-0" />
           ) : (
             <Wifi className="h-3.5 w-3.5 shrink-0" />
           )}
-          <span>{isOffline ? 'Offline Edge' : 'Online Edge'}</span>
+          <span>
+            {isOffline ? 'Offline - SQLite Active' : 'Online · Cloud Sync'}
+          </span>
         </button>
       </div>
     </header>

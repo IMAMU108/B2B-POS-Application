@@ -43,12 +43,12 @@ export function getActionLabel(action: PosAction): string {
 export function getActionTextClass(action: PosAction): string {
   switch (action) {
     case 'ADD_SALE':
-      return 'text-emerald-700';
+      return 'text-[#059669]';
     case 'ADD_CREDIT_SALE':
-      return 'text-amber-700';
+      return 'text-[#D97706]';
     case 'RESTOCK':
-      return 'text-slate-700';
+      return 'text-[#0F172A]';
     case 'ADD_DEBTOR_PAYMENT':
-      return 'text-sky-700';
+      return 'text-[#059669]';
   }
 }

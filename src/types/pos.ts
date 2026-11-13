@@ -6,6 +6,8 @@ export type PosAction =
 
 export type PaymentMethod = 'CASH' | 'TRANSFER' | 'CREDIT';
 
+export type DebtorStatus = 'Pending' | 'Overdue' | 'Cleared';
+
 export interface ParsedItem {
   sku_id: string;
   name: string;
@@ -49,6 +51,8 @@ export interface LedgerEntry {
 export interface DebtorAccount {
   id: string;
   customer_name: string;
+  phone: string;
+  status: DebtorStatus;
   total_credit: number;
   total_paid: number;
   balance: number;

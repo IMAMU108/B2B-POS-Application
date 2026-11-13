@@ -76,30 +76,30 @@ export function LedgerView({ ledger, onResetDemo }: LedgerViewProps) {
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
+    <div className="w-full max-w-md md:max-w-none mx-auto space-y-4 sm:space-y-5 min-w-0">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-1 min-w-0">
+          <div className="relative w-full sm:w-64">
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search customer, item, or transcript..."
-              className="pl-9 pr-3 py-2 w-64 max-w-full text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600"
+              className="w-full min-h-[44px] pl-9 pr-3 py-2 text-xs bg-[#FFFFFF] border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#059669]"
             />
           </div>
 
-          <div className="inline-flex flex-wrap items-center p-1 bg-slate-100 rounded-lg">
+          <div className="grid grid-cols-3 sm:inline-flex items-center p-1 bg-slate-100 rounded-lg gap-1">
             {ACTION_FILTERS.map((f) => (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => setActionFilter(f.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                className={`min-h-[44px] px-2.5 sm:px-3 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
                   actionFilter === f.id
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-[#FFFFFF] text-[#0F172A] shadow-xs'
+                    : 'text-slate-600 hover:text-[#0F172A]'
                 }`}
               >
                 {f.label}
@@ -108,11 +108,11 @@ export function LedgerView({ ledger, onResetDemo }: LedgerViewProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={handleDownloadCsv}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap shrink-0"
+            className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 text-xs font-semibold rounded-lg border border-[#E2E8F0] bg-[#FFFFFF] text-[#0F172A] hover:bg-slate-50 whitespace-nowrap"
           >
             <Download className="h-3.5 w-3.5" />
             <span>Download CSV</span>
@@ -120,7 +120,7 @@ export function LedgerView({ ledger, onResetDemo }: LedgerViewProps) {
           <button
             type="button"
             onClick={onResetDemo}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 whitespace-nowrap shrink-0"
+            className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 text-xs font-semibold rounded-lg border border-[#E2E8F0] bg-[#FFFFFF] text-slate-600 hover:text-[#0F172A] hover:bg-slate-50 whitespace-nowrap"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             <span>Reset</span>
@@ -128,18 +128,108 @@ export function LedgerView({ ledger, onResetDemo }: LedgerViewProps) {
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      {/* Mobile Single-Column Ledger Cards */}
+      <div className="space-y-3 md:hidden">
+        {filtered.length === 0 ? (
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] shadow-xs rounded-xl px-4 py-8 text-center text-xs text-slate-500">
+            No ledger entries match the current filter.
+          </div>
+        ) : (
+          filtered.map((entry) => {
+            const isOpen = expandedId === entry.id;
+            return (
+              <div
+                key={entry.id}
+                className="bg-[#FFFFFF] border border-[#E2E8F0] shadow-xs rounded-xl p-4 space-y-2.5 min-w-0"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p
+                      className={`text-xs font-semibold ${getActionTextClass(entry.payload.action)}`}
+                    >
+                      {getActionLabel(entry.payload.action)}
+                    </p>
+                    <p className="text-sm font-bold text-[#0F172A] truncate mt-0.5">
+                      {entry.payload.customer_name ?? 'Walk-in'}
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {entry.id} · {formatShortDate(entry.created_at)} ·{' '}
+                      <span
+                        className={`font-semibold ${
+                          entry.synced ? 'text-[#059669]' : 'text-[#D97706]'
+                        }`}
+                      >
+                        {entry.synced ? 'Synced' : 'Queued'}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <p className="text-base font-extrabold text-[#0F172A] tabular-nums">
+                      {formatNaira(entry.total_amount)}
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">
+                      {entry.payload.payment_method}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 line-clamp-2">{entry.raw_input}</p>
+
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isOpen ? null : entry.id)}
+                  className="w-full min-h-[44px] rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] text-xs font-semibold text-[#059669] hover:bg-slate-100"
+                >
+                  {isOpen ? 'Hide Items' : `View Items (${entry.payload.items.length})`}
+                </button>
+
+                {isOpen && (
+                  <div className="rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] p-3 space-y-2">
+                    {entry.payload.items.map((item, idx) => (
+                      <div
+                        key={`${item.sku_id}-${idx}`}
+                        className="flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[#0F172A] truncate">
+                            {item.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500 tabular-nums">
+                            {item.quantity} × {formatNaira(item.unit_price)}
+                          </p>
+                        </div>
+                        <span className="font-bold text-[#0F172A] tabular-nums shrink-0">
+                          {formatNaira(item.quantity * item.unit_price)}
+                        </span>
+                      </div>
+                    ))}
+                    {entry.payload.notes && (
+                      <p className="text-[11px] text-slate-500 pt-1 border-t border-[#E2E8F0]">
+                        Note: {entry.payload.notes}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-[#FFFFFF] border border-[#E2E8F0] shadow-xs rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 text-left">
-                <th className="px-5 py-3 font-medium">Txn / Time</th>
-                <th className="px-3 py-3 font-medium">Action</th>
-                <th className="px-3 py-3 font-medium">Customer</th>
-                <th className="px-3 py-3 font-medium">Raw Input</th>
-                <th className="px-3 py-3 font-medium">Payment</th>
-                <th className="px-3 py-3 font-medium text-right">Amount</th>
-                <th className="px-5 py-3 font-medium text-right">JSON</th>
+              <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-slate-600 text-left">
+                <th className="px-5 py-3 font-semibold">Txn / Time</th>
+                <th className="px-3 py-3 font-semibold">Action</th>
+                <th className="px-3 py-3 font-semibold">Customer</th>
+                <th className="px-3 py-3 font-semibold">Raw Input</th>
+                <th className="px-3 py-3 font-semibold">Payment</th>
+                <th className="px-3 py-3 font-semibold text-right">Amount</th>
+                <th className="px-5 py-3 font-semibold text-right">Items</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -154,55 +244,75 @@ export function LedgerView({ ledger, onResetDemo }: LedgerViewProps) {
                   const isOpen = expandedId === entry.id;
                   return (
                     <Fragment key={entry.id}>
-                      <tr className="hover:bg-slate-50/70 transition-colors">
+                      <tr className="hover:bg-[#F8FAFC] transition-colors">
                         <td className="px-5 py-3 whitespace-nowrap">
-                          <div className="font-mono font-medium text-slate-900">
+                          <div className="font-semibold text-[#0F172A]">
                             {entry.id}
                           </div>
-                          <div className="text-[11px] text-slate-400">
+                          <div className="text-[11px] text-slate-500">
                             {formatShortDate(entry.created_at)} ·{' '}
                             <span
-                              className={
-                                entry.synced ? 'text-emerald-700' : 'text-amber-700'
-                              }
+                              className={`font-semibold ${
+                                entry.synced ? 'text-[#059669]' : 'text-[#D97706]'
+                              }`}
                             >
                               {entry.synced ? 'Synced' : 'Queued'}
                             </span>
                           </div>
                         </td>
                         <td
-                          className={`px-3 py-3 font-medium whitespace-nowrap ${getActionTextClass(entry.payload.action)}`}
+                          className={`px-3 py-3 font-semibold whitespace-nowrap ${getActionTextClass(entry.payload.action)}`}
                         >
                           {getActionLabel(entry.payload.action)}
                         </td>
-                        <td className="px-3 py-3 text-slate-800 whitespace-nowrap">
+                        <td className="px-3 py-3 text-[#0F172A] whitespace-nowrap">
                           {entry.payload.customer_name ?? 'Walk-in'}
                         </td>
                         <td className="px-3 py-3 text-slate-600 max-w-xs truncate">
                           {entry.raw_input}
                         </td>
-                        <td className="px-3 py-3 font-mono text-slate-600 whitespace-nowrap">
+                        <td className="px-3 py-3 font-medium text-slate-600 whitespace-nowrap">
                           {entry.payload.payment_method}
                         </td>
-                        <td className="px-3 py-3 text-right font-mono tabular-nums font-medium text-slate-900 whitespace-nowrap">
+                        <td className="px-3 py-3 text-right text-sm font-bold tabular-nums text-[#0F172A] whitespace-nowrap">
                           {formatNaira(entry.total_amount)}
                         </td>
                         <td className="px-5 py-3 text-right whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => setExpandedId(isOpen ? null : entry.id)}
-                            className="text-xs font-medium text-emerald-700 hover:underline"
+                            className="min-h-[44px] px-2 text-xs font-semibold text-[#059669] hover:underline"
                           >
-                            {isOpen ? 'Hide JSON' : 'Inspect JSON'}
+                            {isOpen
+                              ? 'Hide Items'
+                              : `View (${entry.payload.items.length})`}
                           </button>
                         </td>
                       </tr>
                       {isOpen && (
-                        <tr className="bg-slate-50">
+                        <tr className="bg-[#F8FAFC]">
                           <td colSpan={7} className="px-5 py-3">
-                            <pre className="rounded-lg bg-slate-900 text-slate-100 p-3 font-mono text-xs overflow-x-auto">
-                              <code>{JSON.stringify(entry.payload, null, 2)}</code>
-                            </pre>
+                            <div className="space-y-1.5">
+                              {entry.payload.items.map((item, idx) => (
+                                <div
+                                  key={`${item.sku_id}-${idx}`}
+                                  className="flex items-center justify-between text-xs"
+                                >
+                                  <span className="text-[#0F172A]">
+                                    {item.name} ({item.quantity} ×{' '}
+                                    {formatNaira(item.unit_price)})
+                                  </span>
+                                  <span className="font-bold text-[#0F172A] tabular-nums">
+                                    {formatNaira(item.quantity * item.unit_price)}
+                                  </span>
+                                </div>
+                              ))}
+                              {entry.payload.notes && (
+                                <p className="text-[11px] text-slate-500 pt-1">
+                                  Note: {entry.payload.notes}
+                                </p>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       )}

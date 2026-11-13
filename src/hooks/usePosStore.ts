@@ -6,15 +6,16 @@ import {
 } from '../data/seedCatalog';
 import type {
   DebtorAccount,
+  DebtorStatus,
   LedgerEntry,
   ParsedPosPayload,
   SkuItem,
 } from '../types/pos';
 import { computePayloadTotal } from '../utils/formatters';
 
-const SKUS_KEY = 'kasuwa_pos_skus_v1';
-const DEBTORS_KEY = 'kasuwa_pos_debtors_v1';
-const LEDGER_KEY = 'kasuwa_pos_ledger_v1';
+const SKUS_KEY = 'kasuwa_pos_skus_v3';
+const DEBTORS_KEY = 'kasuwa_pos_debtors_v3';
+const LEDGER_KEY = 'kasuwa_pos_ledger_v3';
 
 function readStorage<T>(key: string, fallback: T): T {
   try {
@@ -24,6 +25,12 @@ function readStorage<T>(key: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function resolveDebtorStatus(balance: number, currentStatus?: DebtorStatus): DebtorStatus {
+  if (balance <= 0) return 'Cleared';
+  if (currentStatus === 'Overdue') return 'Overdue';
+  return 'Pending';
 }
 
 export function usePosStore() {
@@ -37,7 +44,7 @@ export function usePosStore() {
   const [browserOnline, setBrowserOnline] = useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
-  const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
+  const [simulatedOffline, setSimulatedOffline] = useState<boolean>(true);
 
   const isOffline = !browserOnline || simulatedOffline;
 
@@ -91,7 +98,6 @@ export function usePosStore() {
 
       setLedger((prev) => [entry, ...prev]);
 
-      // Update inventory SKU stock counts
       if (payload.action !== 'ADD_DEBTOR_PAYMENT') {
         setSkus((prev) =>
           prev.map((sku) => {
@@ -116,7 +122,6 @@ export function usePosStore() {
         );
       }
 
-      // Update debtor credit balances
       if (
         (payload.action === 'ADD_CREDIT_SALE' ||
           payload.action === 'ADD_DEBTOR_PAYMENT') &&
@@ -135,6 +140,8 @@ export function usePosStore() {
             const newDebtor: DebtorAccount = {
               id: `DBT-${String(prev.length + 1).padStart(3, '0')}`,
               customer_name: customerName,
+              phone: '+234 800 000 0000',
+              status: 'Pending',
               total_credit: totalAmount,
               total_paid: 0,
               balance: totalAmount,
@@ -148,19 +155,23 @@ export function usePosStore() {
             if (i !== idx) return d;
             if (payload.action === 'ADD_CREDIT_SALE') {
               const total_credit = d.total_credit + totalAmount;
+              const nextBalance = Math.max(0, total_credit - d.total_paid);
               return {
                 ...d,
                 total_credit,
-                balance: Math.max(0, total_credit - d.total_paid),
+                balance: nextBalance,
+                status: resolveDebtorStatus(nextBalance, d.status),
                 last_activity: now,
                 transactions_count: d.transactions_count + 1,
               };
             }
             const total_paid = d.total_paid + totalAmount;
+            const nextBalance = Math.max(0, d.total_credit - total_paid);
             return {
               ...d,
               total_paid,
-              balance: Math.max(0, d.total_credit - total_paid),
+              balance: nextBalance,
+              status: resolveDebtorStatus(nextBalance, d.status),
               last_activity: now,
               transactions_count: d.transactions_count + 1,
             };
@@ -173,27 +184,30 @@ export function usePosStore() {
     [isOffline]
   );
 
-  const addSku = useCallback((newSku: Omit<SkuItem, 'aliases'> & { aliasesText?: string }) => {
-    const aliases = (newSku.aliasesText ?? newSku.name)
-      .split(',')
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean);
-    setSkus((prev) => [
-      {
-        sku_id: newSku.sku_id.trim().toUpperCase(),
-        barcode: newSku.barcode.trim(),
-        name: newSku.name.trim(),
-        category: newSku.category.trim() || 'General Groceries',
-        unit_label: newSku.unit_label.trim() || 'Unit',
-        unit_price: Number(newSku.unit_price) || 0,
-        cost_price: Number(newSku.cost_price) || 0,
-        stock_qty: Number(newSku.stock_qty) || 0,
-        reorder_level: Number(newSku.reorder_level) || 5,
-        aliases,
-      },
-      ...prev,
-    ]);
-  }, []);
+  const addSku = useCallback(
+    (newSku: Omit<SkuItem, 'aliases'> & { aliasesText?: string }) => {
+      const aliases = (newSku.aliasesText ?? newSku.name)
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+      setSkus((prev) => [
+        {
+          sku_id: newSku.sku_id.trim().toUpperCase(),
+          barcode: newSku.barcode.trim(),
+          name: newSku.name.trim(),
+          category: newSku.category.trim() || 'General Groceries',
+          unit_label: newSku.unit_label.trim() || 'Unit',
+          unit_price: Number(newSku.unit_price) || 0,
+          cost_price: Number(newSku.cost_price) || 0,
+          stock_qty: Number(newSku.stock_qty) || 0,
+          reorder_level: Number(newSku.reorder_level) || 5,
+          aliases,
+        },
+        ...prev,
+      ]);
+    },
+    []
+  );
 
   const adjustSkuStock = useCallback((skuId: string, delta: number) => {
     setSkus((prev) =>
