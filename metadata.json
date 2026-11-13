@@ -1,0 +1,6 @@
+{
+  "name": "KasuwaPOS",
+  "description": "Offline-first B2B POS and Edge AI parsing engine for Nigerian micro-merchants supporting English, Hausa, Nigerian Pidgin, and barcode/receipt OCR.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
